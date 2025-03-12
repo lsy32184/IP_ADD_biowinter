@@ -131,6 +131,19 @@ def get_transform(
     norm_mean: Tuple[float, float, float] = None,
     norm_std: Tuple[float, float, float] = None,
 ) -> Transform:
+    """
+    Returns the appropriate transformation pipeline based on the dataset split (train or validation).
+    
+    Args:
+        split (Literal["train", "val"]): The dataset split type.
+        resize (int): The target image size after resizing.
+        scale (Tuple[float, float]): Scale range for cropping.
+        norm_mean (Tuple[float, float, float], optional): Normalization mean values.
+        norm_std (Tuple[float, float, float], optional): Normalization standard deviation values.
+    
+    Returns:
+        Transform: The appropriate transformation pipeline.
+    """
     if split == "train":
         return get_train_transformation(resize, scale, norm_mean, norm_std)
     elif split == "val":

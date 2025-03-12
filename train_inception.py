@@ -28,6 +28,15 @@ sweep_config_inception = {
 
 
 def main():
+    """
+    Initializes the training process for the Inception model.
+    
+    Steps:
+        1. Loads dataset and applies transformations.
+        2. Configures the model and optimizer.
+        3. Sets up training with early stopping and model checkpointing.
+        4. Trains the model using PyTorch Lightning.
+    """
     csv_path = r"C:\\Users\\BDA_INT01\\Desktop\\Soyeon Lee\\Project\\metadata_R.csv"
     root_dir = r"C:\Users\BDA_INT01\Documents\MARCO"
     wandb.init(project="inception_experiment")

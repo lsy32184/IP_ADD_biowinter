@@ -36,6 +36,26 @@ def setup_training_loaders(
     batch_augment_prob: float,
     random_state: int,
 ) -> Dict[Literal["train", "val"], DataLoader]:
+    """
+    Sets up data loaders for training and validation.
+    
+    Args:
+        path (str): Path to the dataset metadata CSV file.
+        image_dir (str): Directory containing image files.
+        train_ratio (float): Proportion of data used for training.
+        stratify_col (List[str]): Column(s) to stratify the data split.
+        image_resize (int): Target image size after resizing.
+        scale_random_crop (Tuple[float, float]): Scale range for random cropping.
+        batch_size (int): Number of samples per batch.
+        num_workers (int): Number of worker threads for data loading.
+        cutmix_prob (float): Probability of applying CutMix augmentation.
+        alpha (float): MixUp alpha value for augmentation.
+        batch_augment_prob (float): Probability of applying batch augmentation.
+        random_state (int): Random seed for reproducibility.
+    
+    Returns:
+        Dict[Literal["train", "val"], DataLoader]: A dictionary containing data loaders for training and validation.
+    """
     dataframe = pd.read_csv(path)
 
     splits = split_data(dataframe, stratify_col, train_ratio, random_state)
@@ -59,11 +79,19 @@ def setup_training_loaders(
 
 
 def setup_test_loader():
+    """
+    Placeholder function for setting up the test data loader.
+    """
     pass
 
 
 def get_sample_training_loader():
-    """Returns loaders for testing"""
+    """
+    Returns sample training and validation data loaders using predefined parameters.
+    
+    Returns:
+        Dict[Literal["train", "val"], DataLoader]: Sample data loaders for training and validation.
+    """
 
     path_metadata = r"D:\Soyeon\Project\metadata_R.csv"
     image_dir = r"C:\\Users\\BDA_INT01\\Desktop\\Soyeon Lee\\Project\\MARCO_training"
@@ -96,6 +124,9 @@ def get_sample_training_loader():
 
 
 def test_setup_training_loaders():
+    """
+    Tests the data loader setup by visualizing a sample batch from training and validation sets.
+    """
     from utils import visualize_batch
 
     loaders = get_sample_training_loader()

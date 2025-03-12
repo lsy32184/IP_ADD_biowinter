@@ -9,6 +9,18 @@ def split_data(
     train_ratio: float,
     random_state: int,
 ) -> Dict[Literal["train", "val"], pd.DataFrame]:
+    """
+    Splits a dataframe into training and validation sets while ensuring stratified distribution.
+    
+    Args:
+        dataframe (pd.DataFrame): The input dataframe containing the dataset.
+        stratify_col (List[str]): Column(s) used for stratification.
+        train_ratio (float): Proportion of data to allocate to the training set.
+        random_state (int): Random seed for reproducibility.
+    
+    Returns:
+        Dict[Literal["train", "val"], pd.DataFrame]: Dictionary containing training and validation dataframes.
+    """
     # Check of stratify cols are in the dataframe
     if isinstance(stratify_col, str):
         stratify_col = [stratify_col]
@@ -33,6 +45,9 @@ def split_data(
 
 
 def test_split_data():
+    """
+    Tests the `split_data` function by visualizing label distributions before and after splitting.
+    """
     import matplotlib.pyplot as plt
     import seaborn as sns
 

@@ -10,6 +10,24 @@ import wandb
 
 
 class Classifier(pl.LightningModule):
+    """
+    A PyTorch Lightning classifier supporting various architectures, learning rate scheduling,
+    and optional advanced training techniques.
+    
+    Args:
+        model_name (str): The backbone model to use ("resnet", "inception", "vit-s14").
+        num_classes (int): Number of target classes.
+        pretrained (bool): Whether to load a pretrained model.
+        learning_rate (float): Initial learning rate.
+        weight_decay (float): Weight decay for regularization.
+        optimizer (str): Optimizer type ("AdamW", "Adam", "SGD").
+        use_layer_freezing (bool, optional): Whether to freeze lower layers.
+        use_lora_adapter (bool, optional): Whether to use LoRA adapters.
+        use_gradient_clipping (bool, optional): Apply gradient clipping.
+        label_smoothing (float): Label smoothing value.
+        ema_decay (float, optional): EMA decay factor.
+        epochs (int): Number of training epochs.
+    """
     def __init__(
         self,
         model_name="inception",
@@ -86,13 +104,21 @@ class Classifier(pl.LightningModule):
         return self.ema_decay * avg_p + (1 - self.ema_decay) * p
 
     def on_train_epoch_start(self):
-        """훈련 시작 시 EMA 모델 초기화"""
         if self.ema_decay is not None and self.ema is None:
             self.ema = AveragedModel(copy.deepcopy(self), avg_fn=self._ema_avg_fn).to(
                 self.device
             )
 
     def forward(self, x):
+        """
+        Performs a forward pass through the model.
+        
+        Args:
+            x (torch.Tensor): Input tensor.
+        
+        Returns:
+            torch.Tensor: Model output logits.
+        """
         if self.model_name == "vit-s14":
             if not self.training:
                 with torch.no_grad():
@@ -111,16 +137,26 @@ class Classifier(pl.LightningModule):
             return self.model(x)
 
     def training_step(self, batch, batch_idx):
+        """
+        Defines the training step, computing loss and logging metrics.
+        
+        Args:
+            batch (Tuple[torch.Tensor, torch.Tensor]): Batch of images and labels.
+            batch_idx (int): Batch index.
+        
+        Returns:
+            torch.Tensor: Computed loss value.
+        """
         image, target = batch
         image, target = image.to(self.device), target.to(self.device)
 
-        outputs = self(image)  # forward() 호출
+        outputs = self(image)  
         loss = self.criterion(outputs, target)
 
         self.train_losses.append(loss.item())
         self.train_preds.append(
             torch.argmax(outputs, dim=1).cpu().numpy()
-        )  # 예측값과 loss 헷갈리지 마라
+        ) 
         self.train_labels.append(torch.argmax(target, dim=1).cpu().numpy())
 
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
@@ -128,23 +164,32 @@ class Classifier(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
+        """
+        Defines the validation step, computing loss and logging validation metrics.
+        
+        Args:
+            batch (Tuple[torch.Tensor, torch.Tensor]): Batch of images and labels.
+            batch_idx (int): Batch index.
+        
+        Returns:
+            torch.Tensor: Computed validation loss.
+        """
         image, target = batch
 
         image, target = image.to(self.device), target.to(self.device)
 
-        outputs = self(image)  # forward() 호출
+        outputs = self(image)
         loss = self.criterion(outputs, target)
 
         self.val_losses.append(loss.item())
         self.val_preds.append(
             torch.argmax(outputs, dim=1).cpu().numpy()
-        )  # 예측값과 loss 헷갈리지 마라
+        ) 
         self.val_labels.append(torch.argmax(target, dim=1).cpu().numpy())
         self.log("val_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
         return loss
 
     def on_train_epoch_end(self):
-        """훈련 종료 후 EMA 모델 업데이트"""
         if self.ema is not None:
             for ema_param, param in zip(self.ema.parameters(), self.parameters()):
                 ema_param.data = self._ema_avg_fn(ema_param.data, param.data)
@@ -210,6 +255,12 @@ class Classifier(pl.LightningModule):
         self.val_labels.clear()
 
     def configure_optimizers(self):
+        """
+        Configures the optimizer and optionally applies gradient clipping.
+        
+        Returns:
+            dict: Optimizer configuration.
+        """
         optimizers = {
             "AdamW": torch.optim.AdamW(
                 self.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay
@@ -236,6 +287,9 @@ class Classifier(pl.LightningModule):
 
 
 def test_classifier():
+    """
+    Tests the classifier by running a sample forward pass with a mock dataset.
+    """
     from setup_data import get_sample_training_loader
 
     model = Classifier(

@@ -10,6 +10,20 @@ from torch.utils.data import Dataset
 
 
 class CustomDataset(Dataset):
+    """
+    A custom PyTorch Dataset class for loading image classification data.
+    
+    Args:
+        dataframe (pd.DataFrame): Dataframe containing image paths and label IDs.
+        root_dir (str, optional): Root directory where image files are stored.
+        transform (callable, optional): Transformations to be applied to the images.
+    
+    Attributes:
+        root_dir (str): Root directory for image files.
+        data (List[Dict]): List of dictionaries containing `image_path` and `label_id`.
+        transform (callable): Transformation function.
+        num_classes (int): Number of unique classes in the dataset.
+    """
     def __init__(self, dataframe, root_dir=None, transform=None):
         self.root_dir = root_dir
         dataframe.image_path = dataframe.image_path.apply(
@@ -22,6 +36,15 @@ class CustomDataset(Dataset):
         # Assign dir name to image path (allow changing disk location)
 
     def __getitem__(self, idx):
+        """
+        Retrieves an image and its corresponding label.
+        
+        Args:
+            idx (int): Index of the image-label pair to be retrieved.
+        
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]: Transformed image and one-hot encoded label.
+        """
         image_path = self.data[idx]["image_path"]
 
         image = Image.open(image_path).convert("RGB")
@@ -44,6 +67,12 @@ class CustomDataset(Dataset):
         return image, label
 
     def __len__(self):
+        """
+        Returns the total number of samples in the dataset.
+        
+        Returns:
+            int: Number of samples in the dataset.
+        """
         return len(self.data)
 
 
@@ -60,6 +89,19 @@ Separate concerns !!!
 
 
 def test_customdataset():
+    """
+    Function to test the functionality of the `CustomDataset` class.
+    
+    Steps:
+        1. Loads the dataset from a CSV file.
+        2. Applies transformations.
+        3. Checks dataset properties such as class count and length.
+        4. Verifies image transformation and shape.
+        5. Ensures labels are correctly one-hot encoded.
+    
+    Returns:
+        CustomDataset: The dataset instance.
+    """
     from transforms import get_transform
     import pandas as pd
 

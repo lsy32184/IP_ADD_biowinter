@@ -9,7 +9,13 @@ import pandas as pd
 
 def load_model_from_checkpoint(checkpoint_path):
     """
-    Load the trained model from a checkpoint file.
+    Loads the trained model from a checkpoint file.
+    
+    Args:
+        checkpoint_path (str): Path to the model checkpoint file.
+    
+    Returns:
+        TestModel: The loaded model set to evaluation mode.
     """
     model = TestModel.load_from_checkpoint(checkpoint_path)
     model.eval()
@@ -17,12 +23,28 @@ def load_model_from_checkpoint(checkpoint_path):
 
 
 class TestModel(pl.LightningModule):
+    """
+    PyTorch Lightning module for testing an image classification model.
+    
+    Args:
+        model (torch.nn.Module, optional): Pretrained model for evaluation.
+    """
     def __init__(self, model=None):
         super().__init__()
         self.model = model
         self.criterion = nn.CrossEntropyLoss()
 
     def test_step(self, batch, batch_idx):
+        """
+        Defines the testing step, computing loss and accuracy.
+        
+        Args:
+            batch (Tuple[torch.Tensor, torch.Tensor]): Batch of images and labels.
+            batch_idx (int): Batch index.
+        
+        Returns:
+            torch.Tensor: Computed loss value.
+        """
         images, labels = batch
         outputs = self.model(images)
         loss = self.criterion(outputs, labels)
@@ -35,6 +57,9 @@ class TestModel(pl.LightningModule):
 
 
 def main():
+    """
+    Loads a trained model, prepares the test dataset, and evaluates the model using PyTorch Lightning.
+    """
     checkpoint_path = "D:\Soyeon\Project\checkpoints\epoch=15-step=41584.ckpt"  # Change to the actual checkpoint path
 
     # Load model from checkpoint
